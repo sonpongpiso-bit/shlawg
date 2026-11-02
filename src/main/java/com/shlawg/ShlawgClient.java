@@ -47,8 +47,6 @@ public class ShlawgClient implements ClientModInitializer {
 
         if (!(mc.hitResult instanceof BlockHitResult target) || mc.hitResult.getType() != HitResult.Type.BLOCK) return;
 
-        // If the targeted block is replaceable (fire, tall grass, snow layer...), the anchor goes INTO it
-        // instead of on top of it, exactly like vanilla placement.
         BlockPos targetPos = target.getBlockPos();
         boolean replaceable = level.getBlockState(targetPos).canBeReplaced();
         if (!replaceable && target.getDirection() != Direction.UP) return;
@@ -60,13 +58,6 @@ public class ShlawgClient implements ClientModInitializer {
         if (anchorSlot < 0 || glowSlot < 0) return;
         if (detonator.isEmpty() || detonator.is(Items.GLOWSTONE)) return;
 
-        // "Behind" = the block between you and the anchor. Use player.getDirection() for the far side instead.
-        BlockPos glowPos = anchorPos.relative(player.getDirection().getOpposite());
-        BlockPos glowGround = glowPos.below();
-        boolean glowSpotValid = level.getBlockState(glowGround).isFaceSturdy(level, glowGround, Direction.UP)
-                && level.getBlockState(glowPos).canBeReplaced()
-                && player.getInventory().getItem(glowSlot).getCount() >= 2;
-
         // 1. Place anchor
         if (!use(mc, player, anchorSlot, target)) return;
 
@@ -74,15 +65,24 @@ public class ShlawgClient implements ClientModInitializer {
         BlockHitResult onAnchor = new BlockHitResult(Vec3.atCenterOf(anchorPos), Direction.UP, anchorPos, false);
         if (!use(mc, player, glowSlot, onAnchor)) return;
 
-        // 3. Glowstone on the ground behind it (top face of the ground block, no sneaking). Skipped if no valid spot.
-        if (glowSpotValid) {
-            BlockHitResult onGround = new BlockHitResult(
-                    new Vec3(glowGround.getX() + 0.5, glowGround.getY() + 1.0, glowGround.getZ() + 0.5),
-                    Direction.UP, glowGround, false);
-            use(mc, player, glowSlot, onGround);
+        // 3. Optional: Glowstone behind the anchor. Fully isolated: if the space is blocked, missing,
+        //    or the placement fails for any reason, it is skipped and step 4 still runs.
+        try {
+            BlockPos glowPos = anchorPos.relative(player.getDirection().getOpposite());
+            BlockPos glowGround = glowPos.below();
+            boolean valid = level.getBlockState(glowGround).isFaceSturdy(level, glowGround, Direction.UP)
+                    && level.getBlockState(glowPos).canBeReplaced()
+                    && player.getInventory().getItem(glowSlot).getCount() > 0;
+            if (valid) {
+                BlockHitResult onGround = new BlockHitResult(
+                        new Vec3(glowGround.getX() + 0.5, glowGround.getY() + 1.0, glowGround.getZ() + 0.5),
+                        Direction.UP, glowGround, false);
+                use(mc, player, glowSlot, onGround);
+            }
+        } catch (Exception ignored) {
         }
 
-        // 4. Detonate with the slot 9 item
+        // 4. Detonate with the slot 9 item (always runs once the anchor is placed and charged)
         use(mc, player, DETONATE_SLOT, onAnchor);
     }
 
