@@ -4,8 +4,9 @@
   "version": "${version}",
   "name": "Shlawg",
   "description": "Safe Anchor macro.",
-  "authors": ["you"],
+  "authors": ["secret"],
   "license": "MIT",
+  "icon": "assets/shlawg/icon.png",
   "environment": "client",
   "entrypoints": { "client": ["com.shlawg.ShlawgClient"] },
   "depends": {
