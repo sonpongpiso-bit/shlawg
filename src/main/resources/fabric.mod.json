@@ -6,7 +6,7 @@
   "description": "zawg",
   "authors": ["secret"],
   "license": "MIT",
-  "icon": "assets/shlawg/icon.png",
+ "icon": "icon.png",
   "environment": "client",
   "entrypoints": { "client": ["com.shlawg.ShlawgClient"] },
   "depends": {
