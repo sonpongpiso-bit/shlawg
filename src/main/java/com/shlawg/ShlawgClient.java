@@ -107,6 +107,6 @@ public class ShlawgClient implements ClientModInitializer {
     }
 
     private static void msg(LocalPlayer p, String s) {
-        p.displayClientMessage(Component.literal("[Shlawg] " + s), true);
+        p.sendSystemMessage(Component.literal("[Shlawg] " + s));
     }
 }
