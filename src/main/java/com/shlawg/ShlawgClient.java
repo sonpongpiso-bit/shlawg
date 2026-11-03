@@ -39,6 +39,9 @@ public class ShlawgClient implements ClientModInitializer {
                 }
             }
         });
+
+        // New modules
+        CrystalMacro.init();
     }
 
     private static void run(Minecraft mc) {
